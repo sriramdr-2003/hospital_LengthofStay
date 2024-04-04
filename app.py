@@ -14,20 +14,32 @@ def main():
     st.markdown(html_temp, unsafe_allow_html=True)
     case_id = st.text_input("case_id", "Type Here")
     Hospital_code = st.text_input("Hospital_code", "Type Here")
-    Hospital_type_code = st.text_input("Hospital_type_code ", "Type Here")
-    City_Code_Hospital = st.text_input("City_Code_Hospital ", "Type Here")
-    Hospital_region_code = st.text_input("Hospital_region_code", "Type Here")
+
+    # Provide options for Hospital_type_code
+    Hospital_type_code_options = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
+    Hospital_type_code = st.selectbox("Hospital_type_code", Hospital_type_code_options)
+
+    City_Code_Hospital = st.text_input("City_Code_Hospital", "Type Here")
+    Hospital_region_code_options = ['X','Y','Z']
+    Hospital_region_code = st.selectbox("Hospital_region_code", Hospital_region_code_options)
     Available_Extra_Rooms_in_Hospital = st.text_input("Available_Extra_Rooms_in_Hospital", "Type Here")
-    Department = st.text_input("Department", "Type Here")
-    Ward_Type = st.text_input("Ward_Type", "Type Here")
-    Ward_Facility_Code = st.text_input("Ward_Facility_Code", "Type Here")
-    Bed_Grade = st.text_input("Bed_Grade", "Type Here")
-    patientid = st.text_input("patientid ", "Type Here")
+    Department_options = ['gynecology','anesthesia','radiotherapy','TB & Chest disease','surgery']
+    Department = st.selectbox("Department", Department_options)
+    Ward_Type_options = ['P', 'Q', 'R', 'S', 'T', 'U']
+    Ward_Type = st.selectbox("Ward_Type", Ward_Type_options)
+    Ward_Facility_Code_options = ['A','B','C','D','E','F']
+    Ward_Facility_Code = st.selectbox("Ward_Facility_Code", Ward_Facility_Code_options)
+    Bed_Grade_options = [1,2,3,4]
+    Bed_Grade = st.selectbox("Bed_Grade", Bed_Grade_options)
+    patientid = st.text_input("patientid", "Type Here")
     City_Code_Patient = st.text_input("City_Code_Patient", "Type Here")
-    Type_of_Admission = st.text_input("Type_of_Admission", "Type Here")
-    Severity_of_illness = st.text_input("Severity_of_illness", "Type Here")
+    Type_of_Admission_options = ['Trauma','Emergency','Urgent']
+    Type_of_Admission = st.selectbox("Type_of_Admission", Type_of_Admission_options)
+    Severity_of_illness_options = ['Moderate','Minor','Extreme']
+    Severity_of_illness = st.selectbox("Severity_of_illness", Severity_of_illness_options)
     Visitors_with_Patient = st.text_input("Visitors_with_Patient", "Type Here")
-    Age = st.text_input("Age", "Type Here")
+    Age_options = ['0-10','11-20','21-30','31-40','41-50','51-60','61-70','71-80','81-90','91-100']
+    Age = st.selectbox("Age", Age_options)
     Admission_Deposit = st.text_input("Admission_Deposit", "Type Here")
 
     result = ""
@@ -62,6 +74,7 @@ def main():
     if st.button("About"):
         st.text("Built with Streamlit")
         st.text("Hospital")
+
 
 if __name__ == '__main__':
     main()
