@@ -3,6 +3,7 @@ import pandas as pd
 import pickle
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
+import base64  # Add this import for base64 encoding
 
 # Load the XGBoost model
 model_1 = pickle.load(open('modelXGB.pkl', 'rb'))
@@ -84,7 +85,6 @@ def render_web_app():
     st.markdown(html_temp, unsafe_allow_html=True)
     case_id = st.text_input("case_id", "Type Here")
     Hospital_code = st.text_input("Hospital_code", "Type Here")
-
     # Provide options for Hospital_type_code
     Hospital_type_code_options = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
     Hospital_type_code = st.selectbox("Hospital_type_code", Hospital_type_code_options)
@@ -111,7 +111,6 @@ def render_web_app():
     Age_options = ['0-10','11-20','21-30','31-40','41-50','51-60','61-70','71-80','81-90','91-100']
     Age = st.selectbox("Age", Age_options)
     Admission_Deposit = st.text_input("Admission_Deposit", "Type Here")
-
     result = ""
     if st.button("Predict"):
         # Create a dictionary with input values
@@ -134,16 +133,32 @@ def render_web_app():
             'Age': [Age],
             'Admission_Deposit': [Admission_Deposit]
         }
-
         # Create a DataFrame from the input data
         input_df = pd.DataFrame(input_data)
-
         # Get the prediction
         result = f_result(input_df, model_1)  # Assuming model_1 is defined in main.py
     st.success('The output is {}'.format(result))
+    # File uploader for CSV file
+    uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
+    if uploaded_file is not None:
+        # Read the uploaded CSV file
+        input_df = pd.read_csv(uploaded_file)
+        # Get the prediction
+        result = f_result(input_df, model_1)
+        # Display the predictions
+        st.write(result)
+        # Create a DataFrame with predictions
+        predictions_df = pd.DataFrame({'case_id': input_df['case_id'], 'Predicted_Stay': result})
+        # Download link for predictions CSV
+        st.markdown(get_download_link(predictions_df), unsafe_allow_html=True)
     if st.button("About"):
         st.text("Built with Streamlit")
         st.text("Hospital")
+def get_download_link(df):
+    csv = df.to_csv(index=False)
+    b64 = base64.b64encode(csv.encode()).decode()  # Convert to base64 encoding
+    href = f'<a href="data:file/csv;base64,{b64}" download="predictions.csv">Download Predictions CSV</a>'
+    return href
 
 if __name__ == '__main__':
     main()
