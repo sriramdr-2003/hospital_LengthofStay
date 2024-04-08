@@ -1,10 +1,80 @@
 import streamlit as st
-from main import f_result, model_1
 import pandas as pd
+import pickle
+import numpy as np
+from sklearn.preprocessing import LabelEncoder
 
+# Load the XGBoost model
+model_1 = pickle.load(open('modelXGB.pkl', 'rb'))
+def get_countid_enocde(test, cols, name):
+    temp2 = test.groupby(cols)['case_id'].count().reset_index().rename(columns={'case_id': name})
+    test = pd.merge(test, temp2, how='left', on=cols)
+    test[name] = test[name].astype('float')
+    test[name].fillna(np.median(temp2[name]), inplace=True)
+    return test
 
+def f_result(df, model):
+    # Map column names to match with the expected names
+    column_mapping = {
+        'Type_of_Admission': 'Type of Admission',
+        'Severity_of_illness': 'Severity of Illness'
+        # Add other mappings here if needed
+    }
+    # Rename columns if needed
+    df.rename(columns=column_mapping, inplace=True)
+    # Encode categorical variables
+    for column in ['Hospital_type_code', 'Hospital_region_code', 'Department',
+                   'Ward_Type', 'Ward_Facility_Code', 'Type of Admission', 'Severity of Illness', 'Age']:
+        le = LabelEncoder()
+        df[column] = le.fit_transform(df[column].astype(str))
+    # Apply get_countid_enocde function
+    df = get_countid_enocde(df, ['patientid'], name='count_id_patient')
+    df = get_countid_enocde(df, ['patientid', 'Hospital_region_code'], name='count_id_patient_hospitalCode')
+    df = get_countid_enocde(df, ['patientid', 'Ward_Facility_Code'], name='count_id_patient_wardfacilityCode')
+    # Drop unnecessary columns
+    df = df.drop(['patientid', 'Hospital_region_code', 'Ward_Facility_Code'], axis=1)
+    # Set index
+    df.set_index('case_id', inplace=True, drop=True)
+    # Convert DataFrame to numpy array
+    df_array = df.values
+    # Make predictions
+    prediction_xgb = model.predict(df_array)
+    # Map predictions to stay lengths
+    stay_mapping = {0: '0-10', 1: '11-20', 2: '21-30', 3: '31-40', 4: '41-50',
+                    5: '51-60', 6: '61-70', 7: '71-80', 8: '81-90',
+                    9: '91-100', 10: 'More than 100 Days'}
+    predicted_stay_transformed = [stay_mapping[val] for val in prediction_xgb]
+    return predicted_stay_transformed
+# Function to render HTML
+def write_html(html):
+    return st.markdown(html, unsafe_allow_html=True)
 def main():
-    st.set_page_config(page_title="Main Project", page_icon="😈", layout="wide")
+    if 'login' not in st.session_state:
+        st.session_state.login = False
+
+    if not st.session_state.login:
+        login()
+    else:
+        render_web_app()
+def login():
+    st.title("Login")
+    # Define correct credentials
+    correct_user_id = "sriram_dr"
+    correct_password = "sriram2003"
+    # Get user inputs
+    user_id = st.text_input("User ID")
+    password = st.text_input("Password", type="password")
+    # Check if login button is clicked
+    if st.button("Login"):
+        # Check if credentials are correct
+        if user_id == correct_user_id and password == correct_password:
+            st.session_state.login = True
+            st.success("Login successful!")
+            render_web_app()  # Open web app after successful login
+        else:
+            st.error("Invalid user ID or password. Please try again.")
+
+def render_web_app():
     st.title("Hospital")
     html_temp = """
     <div style="background-color:tomato;padding:10px">
@@ -74,7 +144,6 @@ def main():
     if st.button("About"):
         st.text("Built with Streamlit")
         st.text("Hospital")
-
 
 if __name__ == '__main__':
     main()
